@@ -13,9 +13,10 @@ struct Waktu {
     int menit;
 };
 
-void tunda(int detik) {
+bool tunda(int detik) {
     this_thread::sleep_for(chrono::seconds(detik));
-}
+    return true;
+};
 
 void tampilkanWaktuSaatIni() {
     auto waktuSaatIni = chrono::system_clock::to_time_t(chrono::system_clock::now());
@@ -25,7 +26,7 @@ void tampilkanWaktuSaatIni() {
     cout << "+---------------------------------------------------------------------+" << endl;
 }
 
-void aturAlarm(Waktu* waktu, int jumlahAlarm) {
+bool aturAlarm(Waktu* waktu, int jumlahAlarm) {
     for (int i = 0; i < jumlahAlarm; ++i) {
         cout << "Masukkan jam alarm ke-" << i + 1 << " (format 24 jam): ";
         cin >> waktu[i].jam;
@@ -35,17 +36,21 @@ void aturAlarm(Waktu* waktu, int jumlahAlarm) {
 
         if (waktu[i].jam < 0 || waktu[i].jam > 23 || waktu[i].menit < 0 || waktu[i].menit > 59) {
             cout << "Input waktu tidak valid." << endl;
-            --i;
+            return false; // Gagal
         }
     }
+    return true;
 }
 
-void mulaiStopwatch(int* detik) {
+int mulaiStopwatch(int* detik) {
+    int durasi = 0;
     while (true) {
         cout << "Waktu stopwatch: " << *detik << " detik" << endl;
         tunda(1);
         (*detik)++;
+        durasi++;
     }
+    return durasi;
 }
 
 void tampilkanDaftarTugas(string namaFile) {
@@ -70,7 +75,7 @@ void tampilkanDaftarTugas(string namaFile) {
     }
 }
 
-void tambahKeDaftarTugas(string namaFile) {
+bool tambahKeDaftarTugas(string namaFile) {
     ofstream fileTugas(namaFile, ios::app);
     if (fileTugas.is_open()) {
         string tugas;
@@ -85,20 +90,22 @@ void tambahKeDaftarTugas(string namaFile) {
 
         fileTugas << "- Tugas: " << tugas << " (Batas Waktu: " << batasWaktu << ")" << endl;
         cout << "Tugas berhasil ditambahkan ke daftar to-do." << endl;
-        
+
         fileTugas.close();
+        return true; // Berhasil
     } else {
         cerr << "Gagal membuka file daftar to-do." << endl;
+        return false; // Gagal
     }
 }
 
-void hapusTugasDariDaftar(string namaFile) {
+bool hapusTugasDariDaftar(string namaFile) {
     ifstream fileTugasInput(namaFile);
     ofstream fileTugasOutput("temp_file.txt");
 
     if (!fileTugasInput.is_open() || !fileTugasOutput.is_open()) {
         cerr << "Gagal membuka file daftar to-do." << endl;
-        return;
+        return false;
     }
 
     string baris;
@@ -125,7 +132,7 @@ void hapusTugasDariDaftar(string namaFile) {
         fileTugasOutput.close();
         remove("temp_file.txt");
         cout << "Penghapusan tugas dibatalkan." << endl;
-        return;
+        return false;
     }
 
     nomor = 1;
@@ -146,18 +153,20 @@ void hapusTugasDariDaftar(string namaFile) {
     rename("temp_file.txt", namaFile.c_str());
 
     cout << "Tugas berhasil dihapus." << endl;
+
+    return true;
 }
 
-void motivasiHariIni(){
+string motivasiHariIni() {
     srand(time(0));
 
     int random;
     random = rand() % 10 + 1;
 
-    switch (random)
-    {
+    string motivasi;
+    switch (random) {
     case 1:
-        cout << "Hiduplah seolah-olah kamu akan mati besok. Belajarlah seolah-olah kamu hidup selamanya";
+        motivasi = "Hiduplah seolah-olah kamu akan mati besok. Belajarlah seolah-olah kamu hidup selamanya";
         break;
 
     case 2:
@@ -196,6 +205,7 @@ void motivasiHariIni(){
         cout << "Bermalas-malasan hanya akan menghancurkan masa depanmu";
         break;
     }
+    return motivasi;
 }
 
 int main() {
