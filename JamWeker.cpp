@@ -10,6 +10,18 @@ using namespace std;
 
 const string DAFTAR_TUGAS_FILE = "daftar_tugas.txt";
 
+
+enum OpsiMenu {
+    TAMPILKAN_WAKTU = 1,
+    ATUR_ALARM,
+    JALANKAN_STOPWATCH,
+    TAMBAHKAN_TUGAS,
+    TAMPILKAN_TUGAS,
+    HAPUS_TUGAS,
+    BERIKAN_MOTIVASI,
+    KELUAR
+};
+
 struct Waktu {
     int jam;
     int menit;
@@ -238,8 +250,8 @@ int main() {
         cout << "Pilih opsi (0-6): ";
         cin >> pilihan;
 
-        switch (pilihan) {
-            case 1:
+        switch (static_cast<OpsiMenu>(pilihan)) {
+            case TAMPILKAN_WAKTU:
                 tampilkanWaktuSaatIni();
                 cout << "+========================================================+" << endl;
                 cout << "|1.| Kembali ke menu utama                               |" << endl;
@@ -258,7 +270,7 @@ int main() {
                 }
                 
                 break;
-            case 2:
+            case ATUR_ALARM:
                 aturAlarm(waktuAlarm, jumlahAlarm);
                 cout << "+========================================================+" << endl;
                 cout << "|1.| Kembali ke menu utama                               |" << endl;
@@ -276,10 +288,10 @@ int main() {
                         exit(0);
                 }
                 break;
-            case 3:
+            case JALANKAN_STOPWATCH:
                 mulaiStopwatch(&detikStopwatch);
                 break;
-            case 4:
+            case TAMBAHKAN_TUGAS:
                 tambahKeDaftarTugas();
                 cout << "+====================================================+" << endl;
                 cout << "|1.| Kembali ke menu utama                           |" << endl;
@@ -300,7 +312,7 @@ int main() {
                 }
 
                 break;
-            case 5:
+            case TAMPILKAN_TUGAS:
                 tampilkanDaftarTugas();
                 cout << "+========================================================+" << endl;
                 cout << "|1.| Kembali ke menu utama                               |" << endl;
@@ -318,7 +330,7 @@ int main() {
                         exit(0);
                 }
                 break; 
-            case 6:
+            case HAPUS_TUGAS:
                 do {
                     hapusTugasDariDaftar();
                     cout << "+====================================================+" << endl;
@@ -341,7 +353,7 @@ int main() {
                     }
                 } while (pilihan == 1);
                 break;
-            case 7:
+            case BERIKAN_MOTIVASI:
                 do {
                 motivasiHariIni();
                 cout << "+====================================================+" << endl;
@@ -360,7 +372,7 @@ int main() {
                     exit(0);                    }
                 }while (pilihan == 1);
                 break;
-            case 0:
+            case KELUAR:
                 cout << "\nProgram selesai." << endl;
                 break;
             default:
