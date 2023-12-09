@@ -5,11 +5,15 @@
 #include <fstream>
 #include <cstdlib>
 #include <ctime>
+#include <vector>
 
 using namespace std;
 
 const string DAFTAR_TUGAS_FILE = "daftar_tugas.txt";
+const string DAFTAR_NOTES_FILE = "notes.txt"; 
+const string ALARM_FILE = "alarm.txt"; 
 
+vector<string> notes;
 
 enum OpsiMenu {
     TAMPILKAN_WAKTU = 1,
@@ -19,6 +23,8 @@ enum OpsiMenu {
     TAMPILKAN_TUGAS,
     HAPUS_TUGAS,
     BERIKAN_MOTIVASI,
+    TAMPILKAN_NOTES,
+    MEMBUAT_NOTES, 
     KELUAR
 };
 
@@ -41,6 +47,12 @@ void tampilkanWaktuSaatIni() {
 }
 
 bool aturAlarm(Waktu* waktu, int jumlahAlarm) {
+    ofstream alarmFile(ALARM_FILE);
+    if (!alarmFile.is_open()) {
+        cerr << "Gagal membuka file alarm." << endl;
+        return false;
+    }
+
     for (int i = 0; i < jumlahAlarm; ++i) {
         cout << "Masukkan jam alarm ke-" << i + 1 << " (format 24 jam): ";
         cin >> waktu[i].jam;
@@ -50,9 +62,15 @@ bool aturAlarm(Waktu* waktu, int jumlahAlarm) {
 
         if (waktu[i].jam < 0 || waktu[i].jam > 23 || waktu[i].menit < 0 || waktu[i].menit > 59) {
             cout << "Input waktu tidak valid." << endl;
-            return false; // Gagal
+            alarmFile.close();
+            return false;
         }
+
+        // Write alarm details to file
+        alarmFile << "Alarm " << i + 1 << ": " << setw(2) << setfill('0') << waktu[i].jam << ":" << setw(2) << waktu[i].menit << setfill(' ') << endl;
     }
+
+    alarmFile.close();
     return true;
 }
 
@@ -71,18 +89,18 @@ void tampilkanDaftarTugas() {
     ifstream fileTugas(DAFTAR_TUGAS_FILE);
     if (fileTugas.is_open()) {
         string baris;
-        cout << "+----------------------------------------------------------+" << endl;
-        cout << "|             Daftar To-Do List                              |" << endl;
-        cout << "+----------------------------------------------------------+" << endl;
-        cout << "| No. | Tugas                 | Batas Waktu                |" << endl;
-        cout << "+----------------------------------------------------------+" << endl;
+        cout << "+-----------------------------------------------------------------------------+" << endl;
+        cout << "|                             Daftar To-Do List                               |" << endl;
+        cout << "+-----------------------------------------------------------------------------+" << endl;
+        cout << "| No. | Tugas                 | Batas Waktu                                   |" << endl;
+        cout << "+-----------------------------------------------------------------------------+" << endl;
 
         int nomor = 1;
         while (getline(fileTugas, baris)) {
             cout << "| " << setw(3) << nomor++ << " | " << setw(30) << baris << " |" << endl;
         }
 
-        cout << "+----------------------------------------------------------+" << endl;
+        cout << "+-----------------------------------------------------------------------------+" << endl;
         fileTugas.close();
     } else {
         cerr << "Gagal membuka file daftar to-do." << endl;
@@ -94,6 +112,7 @@ bool tambahKeDaftarTugas() {
     if (fileTugas.is_open()) {
         string tugas;
         string batasWaktu;
+        string skala; 
 
         cout << "Masukkan tugas untuk daftar to-do: ";
         cin.ignore();
@@ -102,14 +121,23 @@ bool tambahKeDaftarTugas() {
         cout << "Masukkan tanggal batas waktu (format DD-MM-YYYY): ";
         getline(cin, batasWaktu);
 
-        fileTugas << "- Tugas: " << tugas << " (Batas Waktu: " << batasWaktu << ")" << endl;
+        do {
+        cout << "Skala Prioritas ? (Rendah/Sedang/Tinggi): ";  
+        cin >> skala; 
+        if (skala != "Rendah" && skala != "Sedang" && skala != "Tinggi" && skala != "rendah" && skala != "sedang" && skala != "tinggi"){
+            cout << "Skala prioritas tidak sesuai, silahkan pilih kembali" << endl; 
+           
+        }
+        } while (skala != "Rendah" && skala != "Sedang" && skala != "Tinggi" && skala != "rendah" && skala != "sedang" && skala != "tinggi"); 
+
+        fileTugas << "- Tugas: " << tugas << " (Batas Waktu: " << batasWaktu << ")" << " (Skala Prioritas : " << skala << ")" << endl;
         cout << "Tugas berhasil ditambahkan ke daftar to-do." << endl;
 
         fileTugas.close();
-        return true; // Berhasil
+        return true;
     } else {
         cerr << "Gagal membuka file daftar to-do." << endl;
-        return false; // Gagal
+        return false;
     }
 }
 
@@ -125,17 +153,17 @@ bool hapusTugasDariDaftar() {
     string baris;
     int nomor = 1;
 
-    cout << "+--------------------------------------------------+" << endl;
-    cout << "|          Daftar To-Do List                         |" << endl;
-    cout << "+--------------------------------------------------+" << endl;
-    cout << "| No. | Tugas           | Batas Waktu              |" << endl;
-    cout << "+--------------------------------------------------+" << endl;
+    cout << "+-----------------------------------------------------------------------------+" << endl;
+    cout << "|                            Daftar To-Do List                                |" << endl;
+    cout << "+---------------------------------------------------------------------------- +" << endl;
+    cout << "| No. | Tugas           | Batas Waktu                                         |" << endl;
+    cout << "+-----------------------------------------------------------------------------+" << endl;
 
     while (getline(fileTugasInput, baris)) {
         cout << "| " << setw(3) << nomor++ << " | " << setw(30) << baris << " |" << endl;
     }
 
-    cout << "+--------------------------------------------------+" << endl;
+    cout << "+-----------------------------------------------------------------------------+" << endl;
 
     int nomorHapus;
     cout << "Masukkan nomor tugas yang ingin dihapus (0 untuk batal): ";
@@ -224,6 +252,41 @@ string motivasiHariIni() {
     return motivasi;
 }
 
+bool tambahNotes() {
+    ofstream fileNotes(DAFTAR_NOTES_FILE, ios::app);
+    string catatan;
+
+    cout << "Masukkan Catatan: ";
+    cin.ignore();
+    getline(cin, catatan);
+
+    fileNotes << catatan << endl;
+    cout << "Catatan berhasil dibuat." << endl;
+
+    fileNotes.close();
+    return true;
+}
+
+void tampilkanCatatanPengguna() {
+    ifstream fileCatatan(DAFTAR_NOTES_FILE);
+    if (fileCatatan.is_open()) {
+        string catatan;
+        cout << "+-------------------------------------------+" << endl;
+        cout << "|              Catatan Pengguna             |" << endl;
+        cout << "+-------------------------------------------+" << endl;
+
+        while (getline(fileCatatan, catatan)) {
+            cout << "| " << catatan << endl;
+        }
+
+        cout << "+-------------------------------------------+" << endl;
+        fileCatatan.close();
+    } else {
+        cerr << "Gagal membuka file catatan pengguna." << endl;
+    }
+}
+
+
 int main() {
     int pilihan;
     int detikStopwatch = 0;
@@ -245,9 +308,11 @@ int main() {
         cout << "| 5.| Tampilkan To-Do List                                              |" << endl;
         cout << "| 6.| Hapus Tugas Dari Daftar To-Do                                     |" << endl;
         cout << "| 7.| Berikan Motivasi                                                  |" << endl;
+        cout << "| 8.| Tampilkan Notes                                                   |" << endl;
+        cout << "| 9.| Menambah Notes                                                    |" << endl;
         cout << "| 0.| Keluar                                                            |" << endl;
         cout << "+=======================================================================+" << endl;
-        cout << "Pilih opsi (0-6): ";
+        cout << "Pilih opsi (0-9): ";
         cin >> pilihan;
 
         switch (static_cast<OpsiMenu>(pilihan)) {
@@ -292,24 +357,27 @@ int main() {
                 mulaiStopwatch(&detikStopwatch);
                 break;
             case TAMBAHKAN_TUGAS:
-                tambahKeDaftarTugas();
-                cout << "+====================================================+" << endl;
-                cout << "|1.| Kembali ke menu utama                           |" << endl;
-                cout << "|2.| Input to-do list lagi                           |" << endl;
-                cout << "|3.| Keluar program                                  |" << endl;
-                cout << "+====================================================+" << endl;
-                cout << "Masukkan pilihan (1-3): ";
-                cin >> pilihan;
+                do{
+                    tambahKeDaftarTugas();
+                    cout << "+====================================================+" << endl;
+                    cout << "|1.| Kembali ke menu utama                           |" << endl;
+                    cout << "|2.| Input to-do list lagi                           |" << endl;
+                    cout << "|3.| Keluar program                                  |" << endl;
+                    cout << "+====================================================+" << endl;
+                    cout << "Masukkan pilihan (1-3): ";
+                    cin >> pilihan;
 
-                switch (pilihan) {
-                    case '1':
-                        opsiLanjut = 'y';
-                    case '2':
+                    if (pilihan == 1) {
                         break;
-                    case '3':
-                        cout << "\nProgram selesai." << endl;
+                    } else if (pilihan == 2) {
+                    } else if (pilihan == 3) {
+                        cout << "\nProgram selesai";
                         exit(0);
-                }
+                    } else {
+                        cout << "Pilihan tidak valid. Program keluar." << endl;
+                        exit(0);
+                    }
+                }while (pilihan == 2);
 
                 break;
             case TAMPILKAN_TUGAS:
@@ -369,14 +437,54 @@ int main() {
                     break;
                 }else if(pilihan == 3){
                     cout << "\nProgram selesai";
-                    exit(0);                    }
+                    exit(0);    
+                }
                 }while (pilihan == 1);
                 break;
+            case TAMPILKAN_NOTES:
+                tampilkanCatatanPengguna();
+                cout << "+========================================================+" << endl;
+                cout << "|1.| Kembali ke menu utama                               |" << endl;
+                cout << "|2.| Keluar program                                      |" << endl;
+                cout << "+========================================================+" << endl;
+                cout << "Pilih opsi: ";
+                cin >> pilihan;
+
+                switch(pilihan){
+                    case 1:
+                        opsiLanjut = 'y';
+                        break;
+                    case 2:
+                        cout << "\nProgram selesai." << endl;
+                        exit(0);
+                }
+            break;
+
+            case MEMBUAT_NOTES:
+            tambahNotes();
+            cout << "+========================================================+" << endl;
+            cout << "|1.| Kembali ke menu utama                               |" << endl;
+            cout << "|2.| Keluar program                                      |" << endl;
+            cout << "+========================================================+" << endl;
+            cout << "Pilih opsi: ";
+            cin >> pilihan;
+
+            switch(pilihan){
+                case 1:
+                    opsiLanjut = 'y';
+                    break;
+                case 2:
+                    cout << "\nProgram selesai." << endl;
+                    exit(0);
+                }
+            break;
+
             case KELUAR:
                 cout << "\nProgram selesai." << endl;
+                pilihan = 0;
                 break;
             default:
-                cout << "Opsi tidak valid. Silakan pilih lagi." << endl;
+                cout << "\nProgram selesai" << endl;
         }
 
     } while (pilihan != 0 && (opsiLanjut == 'y' || opsiLanjut == 'Y'));
